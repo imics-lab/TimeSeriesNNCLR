@@ -12,6 +12,10 @@ from encoder import encoder
 from nnclr import NNCLR 
 
 
+import resource
+low, high = resource.getrlimit(resource.RLIMIT_NOFILE)
+resource.setrlimit(resource.RLIMIT_NOFILE, (high, high))
+
 
 ### Load the dataset
 dataset_name = "stl10"
@@ -21,13 +25,13 @@ def prepare_dataset():
     labeled_batch_size = labelled_train_images // steps_per_epoch
     batch_size = unlabeled_batch_size + labeled_batch_size
 
-    # unlabeled_train_dataset = (
-    #     tfds.load(
-    #         dataset_name, split="unlabelled", as_supervised=True, shuffle_files=True
-    #     )
-    #     .shuffle(buffer_size=shuffle_buffer)
-    #     .batch(unlabeled_batch_size, drop_remainder=True)
-    # )
+    unlabeled_train_dataset = (
+        tfds.load(
+            dataset_name, split="unlabelled", as_supervised=True, shuffle_files=True
+        )
+        .shuffle(buffer_size=shuffle_buffer)
+        .batch(unlabeled_batch_size, drop_remainder=True)
+    )
     labeled_train_dataset = (
         tfds.load(dataset_name, split="train", as_supervised=True, shuffle_files=True)
         .shuffle(buffer_size=shuffle_buffer)
@@ -50,6 +54,7 @@ batch_size, train_dataset, labeled_train_dataset, test_dataset = prepare_dataset
 
 
 ### Pre-train NNCLR
+print("Pre-train:")
 model = NNCLR(temperature=temperature, queue_size=queue_size)
 model.compile(
     contrastive_optimizer=keras.optimizers.Adam(),
@@ -61,6 +66,7 @@ pretrain_history = model.fit(
 
 
 ### Evaluate our model
+print("Fine tune:")
 finetuning_model = keras.Sequential(
     [
         layers.Input(shape=input_shape),

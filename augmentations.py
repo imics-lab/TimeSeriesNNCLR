@@ -1,6 +1,7 @@
 from tensorflow import keras
 from tensorflow.keras import layers
 import tensorflow as tf
+from config import *
 
 class RandomResizedCrop(layers.Layer):
     def __init__(self, scale, ratio):
@@ -64,9 +65,9 @@ class RandomBrightness(layers.Layer):
 def augmenter(brightness, name, scale):
     return keras.Sequential(
         [
-            layers.Input(shape=input_shape),
-            layers.Rescaling(1 / 255),
-            layers.RandomFlip("horizontal"),
+            tf.keras.layers.Input(shape=input_shape),
+            tf.keras.layers.experimental.preprocessing.Rescaling(1 / 255),
+            tf.keras.layers.experimental.preprocessing.RandomFlip("horizontal"),
             RandomResizedCrop(scale=scale, ratio=(3 / 4, 4 / 3)),
             RandomBrightness(brightness=brightness),
         ],
