@@ -31,7 +31,8 @@ TODOs:
 
 #mount google drive in colab session
 #enter path to where the git repo was cloned
-my_path = '/content/drive/My Drive/Colab Notebooks/imics_lab_repositories/load_data_time_series_dev'
+# my_path = '/content/drive/My Drive/Colab Notebooks/imics_lab_repositories/load_data_time_series_dev'
+my_path = 'C:/Users/vangelis/Files/Academia/Research/DeepLearning/TimeSeriesNNCLR'
 
 import os
 import shutil #https://docs.python.org/3/library/shutil.html
@@ -44,10 +45,14 @@ from tensorflow.keras.utils import to_categorical # for one-hot encoding
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
+import sys
 
 # use get_x_y_sub to get partially processed numpy arrays
-full_filename = my_path+os.path.join('/HAR/e4_wristband_Nov2019/'+'e4_get_x_y_sub.py')
-shutil.copy(full_filename,'e4_get_x_y_sub.py')
+full_filename = my_path+os.path.join('/load_data_time_series/HAR/e4_wristband_Nov2019/'+'e4_get_x_y_sub.py')
+# Add the path to your pythonpath
+sys.path.append(full_filename)
+
+# shutil.copy(full_filename,'e4_get_x_y_sub.py')
 from e4_get_x_y_sub import get_X_y_sub
 
 def e4_load_dataset(
@@ -93,6 +98,15 @@ def e4_load_dataset(
         print("One-hot-encoding",onehot_encoder.categories_)
         y=onehot_encoded
         #return X,y
+    else:
+        print("Not one-hot-encoding")
+        y_vector = np.ravel(y) #encoder won't take column vector
+        le = LabelEncoder()
+        integer_encoded = le.fit_transform(y_vector) #convert from string to int
+        name_mapping = dict(zip(le.classes_, le.transform(le.classes_)))
+        print(name_mapping) # seems risky as interim step before one-hot
+        y = integer_encoded
+
     # split by subject number pass in dictionary
     sub_num = np.ravel(sub[ : , 0] ) # convert shape to (1047,)
     if (not incl_val_group):

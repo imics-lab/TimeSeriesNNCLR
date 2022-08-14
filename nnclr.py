@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
-from augmentations import  RandomResizedCrop, RandomBrightness, augmenter
+from augmentations import *
 from encoder import encoder
 from config import *
 
@@ -16,8 +16,8 @@ class NNCLR(keras.Model):
         self.contrastive_accuracy = keras.metrics.SparseCategoricalAccuracy()
         self.probe_loss = keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 
-        self.contrastive_augmenter = augmenter(**contrastive_augmenter)
-        self.classification_augmenter = augmenter(**classification_augmenter)
+        self.contrastive_augmenter = augmenter("contrastive_augmenter")
+        self.classification_augmenter = augmenter("classification_augmenter")
         self.encoder = encoder()
         self.projection_head = keras.Sequential(
             [
@@ -28,7 +28,7 @@ class NNCLR(keras.Model):
             name="projection_head",
         )
         self.linear_probe = keras.Sequential(
-            [layers.Input(shape=(width,)), layers.Dense(10)], name="linear_probe"
+            [layers.Input(shape=(width,)), layers.Dense(n_classes)], name="linear_probe"
         )
         self.temperature = temperature
 
@@ -74,9 +74,9 @@ class NNCLR(keras.Model):
             features_2 - tf.reduce_mean(features_2, axis=0)
         ) / tf.math.reduce_std(features_2, axis=0)
 
-        batch_size = tf.shape(features_1, out_type=tf.float32)[0]
+        batch_size = tf.shape(features_1, out_type=tf.int32)[0]
         cross_correlation = (
-            tf.matmul(features_1, features_2, transpose_a=True) / batch_size
+            tf.matmul(features_1, features_2, transpose_a=True) / tf.cast(batch_size, tf.float32)
         )
 
         feature_dim = tf.shape(features_1)[1]
@@ -201,3 +201,6 @@ class NNCLR(keras.Model):
 
         self.probe_accuracy.update_state(labels, class_logits)
         return {"p_loss": probe_loss, "p_acc": self.probe_accuracy.result()}
+
+    def call(self, inputs):
+        return self.encoder(inputs)

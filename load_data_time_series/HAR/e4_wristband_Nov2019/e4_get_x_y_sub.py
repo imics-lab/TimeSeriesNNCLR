@@ -234,9 +234,9 @@ def split_df_to_timeslice_nparrays(df, time_steps, step):
 """# Main Function to generate ndarrays"""
 
 def get_X_y_sub(
-    working_dir='/content/temp', # this directory will be created inside colab
+    working_dir = os.getcwd()+'/temp', # this directory will be created inside colab
     # you probably need to change this path to your google drive mount
-    zip_dir = '/content/drive/MyDrive/Colab Notebooks/imics_lab_repositories/load_data_time_series_dev/HAR/e4_wristband_Nov2019/zip_datafiles/sub1',
+    zip_dir = 'C:/Users/vangelis/Files/Academia/Research/DeepLearning/TimeSeriesNNCLR/load_data_time_series/HAR/e4_wristband_Nov2019/zip_datafiles/sub1',
     zip_flist = [],
     # note the longer walk x25540_ zip file has not been labeled, this is for experiment only
     #zip_flist = ['1574625540_A01F11.zip'] # Old main to Alkek and back
