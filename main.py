@@ -12,15 +12,12 @@ from augmentations import *
 from encoder import encoder
 from nnclr import NNCLR 
 
-tf.config.run_functions_eagerly(True)
+# Enable eager execution for debugging
+# tf.config.run_functions_eagerly(True) 
 
 
-# low, high = resource.getrlimit(resource.RLIMIT_NOFILE)
-# resource.setrlimit(resource.RLIMIT_NOFILE, (high, high))
-
-(batch_size, train_dataset, labeled_train_dataset, test_dataset, 
+(batch_size, train_dataset, unlabeled_train_dataset, labeled_train_dataset, test_dataset, 
     x_train, y_train, x_validate, y_validate, x_test, y_test) = load_dataset()
-
 
 
 ### Pre-train NNCLR
@@ -34,12 +31,36 @@ model.compile(
 model.build(input_shape=(None, input_shape[0], input_shape[1]))
 model.summary()
 
+
 pretrain_history = model.fit(
-    train_dataset, epochs=num_epochs, validation_data=test_dataset
+    train_dataset, epochs=pretrain_num_epochs, validation_data=test_dataset, 
+    verbose=2 # 0 = silent, 1 = progress bar, 2 = one line per epoch, 3 = one line per batch
+              # Due to a weird bug, the fit function crashes if verbose is set to 1.
 )
 
 
-### Evaluate our model
+# Contrastive accuracy: self-supervised metric, the ratio of cases in which the representation of an image is more 
+# similar to its differently augmented version's one, than to the representation of any other image in the current batch.
+
+# Correlation accuracy: self-supervised metric, the ratio of cases in which the representation of an image is more
+# similar to its differently augmented version's one, than to the representation of any other image in the queue.
+
+# Probe accuracy: supervised metric, the ratio of cases in which the representation of an image is more similar to its
+# label's one, than to the representation of any other label.
+
+print(pretrain_history.history.keys())
+# summarize history for accuracy
+plt.plot(pretrain_history.history['c_acc'])
+plt.plot(pretrain_history.history['r_acc'])
+plt.plot(pretrain_history.history['p_acc'])
+plt.title('model accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['contrastive_accuracy', 'correlation_accuracy', 'probe_accuracy'], loc='upper left')
+plt.show()
+
+
+### Fine tune our model
 print("Fine tune:")
 finetuning_model = keras.Sequential(
     [
@@ -57,10 +78,23 @@ finetuning_model.compile(
 )
 
 finetuning_history = finetuning_model.fit(
-    labeled_train_dataset, epochs=num_epochs, validation_data=test_dataset
+    labeled_train_dataset, epochs=finetune_num_epochs, validation_data=test_dataset
 )
 
 
+print(finetuning_history.history.keys())
+# summarize history for accuracy
+plt.plot(finetuning_history.history['acc'])
+plt.plot(finetuning_history.history['val_acc'])
+plt.title('model accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
+
+
+
+# Evaluate our fine tuned model on the test set.
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
 from sklearn.metrics import accuracy_score
@@ -88,6 +122,7 @@ print(cm)
 # plt.tight_layout() # keeps labels from being cutoff when saving as pdf
 # plt.show()
 
+
 ### Classify test set with the sklearn KNN classifier
 from sklearn.neighbors import KNeighborsClassifier
 
@@ -101,6 +136,7 @@ knn_model = knn.fit(train_feature_vectors, y_train)
 test_feature_vectors = model.encoder(x_test, training=False)
 y_pred = knn_model.predict(test_feature_vectors)
 
+print('Prediction accuracy: {0:.3f}'.format(accuracy_score(y_test, y_pred)))
 print(classification_report(y_test, y_pred, target_names=t_names))
 cm = confusion_matrix(y_test, y_pred)
 print(cm)

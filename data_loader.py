@@ -35,4 +35,4 @@ def load_dataset():
         (unlabeled_train_dataset, labeled_train_dataset)
     ).prefetch(buffer_size=AUTOTUNE)
 
-    return BATCH_SIZE, train_dataset, labeled_train_dataset, test_dataset, x_train, y_train, x_validate, y_validate, x_test, y_test
+    return BATCH_SIZE, train_dataset, unlabeled_train_dataset, labeled_train_dataset, test_dataset, x_train, y_train, x_validate, y_validate, x_test, y_test

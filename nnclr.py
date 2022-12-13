@@ -146,14 +146,14 @@ class NNCLR(keras.Model):
         return loss
 
     def train_step(self, data):
-        (unlabeled_images, _), (labeled_images, labels) = data
-        images = tf.concat((unlabeled_images, labeled_images), axis=0)
-        augmented_images_1 = self.contrastive_augmenter(images)
-        augmented_images_2 = self.contrastive_augmenter(images)
+        (unlabeled_instances, _), (labeled_instances, labels) = data
+        instances = tf.concat((unlabeled_instances, labeled_instances), axis=0)
+        augmented_instances_1 = self.contrastive_augmenter(instances)
+        augmented_instances_2 = self.contrastive_augmenter(instances)
 
         with tf.GradientTape() as tape:
-            features_1 = self.encoder(augmented_images_1)
-            features_2 = self.encoder(augmented_images_2)
+            features_1 = self.encoder(augmented_instances_1)
+            features_2 = self.encoder(augmented_instances_2)
             projections_1 = self.projection_head(features_1)
             projections_2 = self.projection_head(features_2)
             contrastive_loss = self.contrastive_loss(projections_1, projections_2)
@@ -169,10 +169,10 @@ class NNCLR(keras.Model):
         )
         self.update_contrastive_accuracy(features_1, features_2)
         self.update_correlation_accuracy(features_1, features_2)
-        preprocessed_images = self.classification_augmenter(labeled_images)
+        preprocessed_instances = self.classification_augmenter(labeled_instances)
 
         with tf.GradientTape() as tape:
-            features = self.encoder(preprocessed_images)
+            features = self.encoder(preprocessed_instances)
             class_logits = self.linear_probe(features)
             probe_loss = self.probe_loss(labels, class_logits)
         gradients = tape.gradient(probe_loss, self.linear_probe.trainable_weights)
@@ -190,12 +190,12 @@ class NNCLR(keras.Model):
         }
 
     def test_step(self, data):
-        labeled_images, labels = data
+        labeled_instances, labels = data
 
-        preprocessed_images = self.classification_augmenter(
-            labeled_images, training=False
+        preprocessed_instances = self.classification_augmenter(
+            labeled_instances, training=False
         )
-        features = self.encoder(preprocessed_images, training=False)
+        features = self.encoder(preprocessed_instances, training=False)
         class_logits = self.linear_probe(features, training=False)
         probe_loss = self.probe_loss(labels, class_logits)
 
