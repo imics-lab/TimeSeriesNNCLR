@@ -102,6 +102,7 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import accuracy_score
 import pandas as pd
 import seaborn as sns
+import numpy as np
 
 #### Show results
 predictions = finetuning_model.predict(test_dataset, verbose=0, batch_size=32)
