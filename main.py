@@ -26,6 +26,7 @@ model = NNCLR(temperature=temperature, queue_size=queue_size)
 model.compile(
     contrastive_optimizer=keras.optimizers.Adam(),
     probe_optimizer=keras.optimizers.Adam(),
+    run_eagerly=None # True = run eagerly, False = run as graph, None = autodetect
 )
 
 model.build(input_shape=(None, input_shape[0], input_shape[1]))
@@ -75,6 +76,7 @@ finetuning_model.compile(
     optimizer=keras.optimizers.Adam(),
     loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
     metrics=[keras.metrics.SparseCategoricalAccuracy(name="acc")],
+    run_eagerly=None # True = run eagerly, False = run as graph, None = autodetect
 )
 
 finetuning_history = finetuning_model.fit(
