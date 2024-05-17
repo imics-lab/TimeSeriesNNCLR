@@ -1,7 +1,6 @@
 from tensorflow import keras
 from tensorflow.keras import layers
 import tensorflow as tf
-from config import *
 
 class Jittering(layers.Layer):
     '''
@@ -81,7 +80,7 @@ class TimeWarping(layers.Layer):
         return warped_signal
 
 
-def augmenter(name):
+def augmenter(name="augmenter", input_shape=None):
     return keras.Sequential(
         [
             tf.keras.layers.Input(shape=input_shape),
@@ -91,4 +90,3 @@ def augmenter(name):
         ],
         name=name,
     )
-

@@ -1,14 +1,13 @@
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
+# from config import *
 from augmentations import *
-from encoder import encoder
-from config import *
-
+# from encoder import encoder
 
 class NNCLR(keras.Model):
     def __init__(
-        self, temperature, queue_size,
+        self, temperature=None, queue_size=None, input_shape=None, output_width=None, n_classes=None, encoder=None
     ):
         super(NNCLR, self).__init__()
         self.probe_accuracy = keras.metrics.SparseCategoricalAccuracy()
@@ -16,19 +15,19 @@ class NNCLR(keras.Model):
         self.contrastive_accuracy = keras.metrics.SparseCategoricalAccuracy()
         self.probe_loss = keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 
-        self.contrastive_augmenter = augmenter("contrastive_augmenter")
-        self.classification_augmenter = augmenter("classification_augmenter")
-        self.encoder = encoder()
+        self.contrastive_augmenter = augmenter(name="contrastive_augmenter", input_shape=input_shape)
+        self.classification_augmenter = augmenter(name="classification_augmenter", input_shape=input_shape)
+        self.encoder = encoder
         self.projection_head = keras.Sequential(
             [
-                layers.Input(shape=(width,)),
-                layers.Dense(width, activation="relu"),
-                layers.Dense(width),
+                layers.Input(shape=(output_width,)),
+                layers.Dense(output_width, activation="relu"),
+                layers.Dense(output_width),
             ],
             name="projection_head",
         )
         self.linear_probe = keras.Sequential(
-            [layers.Input(shape=(width,)), layers.Dense(n_classes)], name="linear_probe"
+            [layers.Input(shape=(output_width,)), layers.Dense(n_classes)], name="linear_probe"
         )
         self.temperature = temperature
 

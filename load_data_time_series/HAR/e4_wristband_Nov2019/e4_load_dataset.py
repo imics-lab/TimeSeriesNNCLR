@@ -29,10 +29,6 @@ TODOs:
 *
 """
 
-#mount google drive in colab session
-#enter path to where the git repo was cloned
-# my_path = '/content/drive/My Drive/Colab Notebooks/imics_lab_repositories/load_data_time_series_dev'
-my_path = 'C:/Users/vangelis/Files/Academia/Research/DeepLearning/TimeSeriesNNCLR'
 
 import os
 import shutil #https://docs.python.org/3/library/shutil.html
@@ -47,8 +43,12 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
 import sys
 
+#enter path to where the git repo was cloned
+# Get project root directory path
+my_path = os.path.abspath(os.path.dirname(__file__))
+
 # use get_x_y_sub to get partially processed numpy arrays
-full_filename = my_path+os.path.join('/load_data_time_series/HAR/e4_wristband_Nov2019/'+'e4_get_x_y_sub.py')
+full_filename = os.path.join(my_path, 'load_data_time_series', 'HAR', 'e4_wristband_Nov2019', 'e4_get_x_y_sub.py')
 # Add the path to your pythonpath
 sys.path.append(full_filename)
 
