@@ -1,8 +1,7 @@
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
-# from config import *
-from augmentations import *
+from augmentations import augmenter
 # from encoder import encoder
 
 class NNCLR(keras.Model):

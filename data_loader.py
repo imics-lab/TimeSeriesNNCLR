@@ -1,6 +1,12 @@
 import sys
 import os
-from config import *
+import tensorflow as tf
+# from config import *
+
+AUTOTUNE = tf.data.AUTOTUNE
+BATCH_SIZE = 32
+SHUFFLE_BUFFER_SIZE = 1000
+
 
 def load_e4_dataset():
     # Get project root directory path
